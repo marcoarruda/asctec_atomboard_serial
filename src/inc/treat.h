@@ -1,3 +1,7 @@
+bool treatValidation(std_msgs::String s) {
+  return s.data.length() > 8;
+}
+
 void treatConvert(std_msgs::String s, std_msgs::Int16MultiArray &array) {
   // ignore brackets
   std_msgs::String s1, sc;

@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 
   std_msgs::String toPublish;
   std::stringstream ss_toPublish;
+  std_msgs::Int16MultiArray array;
 
   while (ros::ok())
   {
@@ -49,13 +50,19 @@ int main(int argc, char **argv)
     //ROS_INFO("%s", toPublish.data.c_str());
 
     // validate
-
-    // convert
-    std_msgs::Int16MultiArray array;
-    treatConvert(toPublish, array);
-
+    if(treatValidation(toPublish)) {
+      // convert
+      treatConvert(toPublish, array);
+    } else {
+      array.data.clear();
+      for(int i=0;i<5;i++) {
+        array.data.push_back(-1);
+      }
+    }
     // publish
     chatter_pub.publish(array);
+
+    // ROS stuff
     ros::spinOnce();
     loop_rate.sleep();
     count.data++;
