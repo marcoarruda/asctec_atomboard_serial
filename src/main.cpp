@@ -42,15 +42,19 @@ int main(int argc, char **argv)
   int end_count;
   char mensagem[60];
   int mensagem_count;
+  std_msgs::String toPublish;
+  std::stringstream ss_toPublish;
 
   while (ros::ok())
   {
     end_count = 0;
     mensagem_count = 0;
+    ss_toPublish.str(std::string());
     ROS_INFO("loop [%d]", count.data);
     for(int i=0;i<60;i++) {
       mensagem[i] = 0x00;
     }
+
 
     while(end_count < 2) {
       result = read(fd, &data, 1);
@@ -60,6 +64,7 @@ int main(int argc, char **argv)
         }
         //ROS_INFO("result: [%d]; data: [%c]", result, data);
         mensagem[mensagem_count] = data;
+        ss_toPublish << data;
         mensagem_count++;
       } else {
         //ROS_INFO("result: [%d]", result);
@@ -67,14 +72,6 @@ int main(int argc, char **argv)
       }
     }
     ROS_INFO("mensagem: [%.60s];", &mensagem[0]);
-    std_msgs::String toPublish;
-    std::stringstream ss_toPublish;
-    int char_index = 0;
-    char a = mensagem[char_index];
-    while(a != 0x00) {
-      ss_toPublish << a;
-    }
-    ROS_INFO();
     toPublish.data = ss_toPublish.str();
     ROS_INFO("%s", toPublish.data.c_str());
 
