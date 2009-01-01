@@ -14,8 +14,7 @@
 // Local libs
 #include "inc/serial.h"
 
-int fd, result = -1;
-unsigned char data;
+int fd;
 
 int main(int argc, char **argv)
 {
@@ -28,38 +27,24 @@ int main(int argc, char **argv)
   count.data = 0;
 
   fd = openSerial("/dev/ttyUSB1");
+  confSerial(fd);
 
-  std_msgs::String msg;
-  std::stringstream ss;
-  int end_count;
   std_msgs::String toPublish;
   std::stringstream ss_toPublish;
 
   while (ros::ok())
   {
-    end_count = 0;
     ss_toPublish.str(std::string());
     ROS_INFO("loop [%d]", count.data);
 
-
-    while(end_count < 2) {
-      result = read(fd, &data, 1);
-      if(result > 0) {
-        if (data == ']') {
-          end_count++;
-        }
-        //ROS_INFO("result: [%d]; data: [%c]", result, data);
-        ss_toPublish << data;
-      } else {
-        //ROS_INFO("result: [%d]", result);
-        break;
-      }
-    }
-    const char* a = ss_toPublish.str().c_str();
-    ROS_INFO("mensagem: [%.60s];", &a[0]);
+    // read serial
+    readSerial(fd, ss_toPublish);
     toPublish.data = ss_toPublish.str();
     ROS_INFO("%s", toPublish.data.c_str());
 
+    // validate and convert
+
+    // publish
     chatter_pub.publish(toPublish);
     ros::spinOnce();
     loop_rate.sleep();
