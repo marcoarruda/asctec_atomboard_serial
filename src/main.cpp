@@ -10,15 +10,15 @@
 #include <fcntl.h>  // File control definitions
 #include <termios.h> // POSIX terminal control definitionss
 
-int fd, result;
-uint8_t data;
+int fd, result = -1;
+unsigned char data;
 
 int main(int argc, char **argv)
 {
   // ROS variables
   ros::init(argc, argv, "talker");
   ros::NodeHandle n;
-  ros::Publisher chatter_pub = n.advertise<std_msgs::UInt16>("chatter", 10);
+  ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 10);
   ros::Rate loop_rate(1);
   std_msgs::UInt16 count;
   count.data = 0;
@@ -48,14 +48,13 @@ int main(int argc, char **argv)
     end_count = 0;
     mensagem_count = 0;
     ROS_INFO("loop [%d]", count.data);
-    chatter_pub.publish(count);
     for(int i=0;i<60;i++) {
       mensagem[i] = 0x00;
     }
 
     while(end_count < 2) {
       result = read(fd, &data, 1);
-      if(result > -1) {
+      if(result > 0) {
         if (data == ']') {
           end_count++;
         }
@@ -68,7 +67,18 @@ int main(int argc, char **argv)
       }
     }
     ROS_INFO("mensagem: [%.60s];", &mensagem[0]);
+    std_msgs::String toPublish;
+    std::stringstream ss_toPublish;
+    int char_index = 0;
+    char a = mensagem[char_index];
+    while(a != 0x00) {
+      ss_toPublish << a;
+    }
+    ROS_INFO();
+    toPublish.data = ss_toPublish.str();
+    ROS_INFO("%s", toPublish.data.c_str());
 
+    chatter_pub.publish(toPublish);
     ros::spinOnce();
     loop_rate.sleep();
     count.data++;
